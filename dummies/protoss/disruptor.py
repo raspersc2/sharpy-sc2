@@ -1,6 +1,6 @@
 from typing import List, Union
 
-from sc2 import UnitTypeId
+from sc2 import UnitTypeId, Race
 from sc2.ids.upgrade_id import UpgradeId
 from sharpy.knowledges import *
 from sharpy.plans import *
@@ -10,24 +10,36 @@ from sharpy.plans.acts.protoss import *
 from sharpy.plans.tactics import *
 from sharpy.plans.tactics.protoss import *
 
+
 class DistruptorBuild(BuildOrder):
     def __init__(self):
-        build = BuildOrder([
-            Step(RequiredUnitReady(UnitTypeId.PYLON), ChronoUnitProduction(UnitTypeId.PROBE, UnitTypeId.NEXUS),
-                 skip=RequiredUnitExists(UnitTypeId.PROBE, 19)),
-            Step(None, ChronoUnitProduction(UnitTypeId.IMMORTAL, UnitTypeId.ROBOTICSFACILITY),
-                 skip=RequiredUnitExists(UnitTypeId.IMMORTAL, 1, include_killed=True)),
-            Step(None, ChronoUnitProduction(UnitTypeId.OBSERVER, UnitTypeId.ROBOTICSFACILITY),
-                 skip=RequiredUnitExists(UnitTypeId.OBSERVER, 1, include_killed=True)),
-            Step(None, ChronoUnitProduction(UnitTypeId.DISRUPTOR, UnitTypeId.ROBOTICSFACILITY),
-                 skip=RequiredUnitExists(UnitTypeId.DISRUPTOR, 1, include_killed=True)),
-
-            SequentialList([
+        build = BuildOrder(
+            Step(
+                RequiredUnitReady(UnitTypeId.PYLON),
+                ChronoUnitProduction(UnitTypeId.PROBE, UnitTypeId.NEXUS),
+                skip=RequiredUnitExists(UnitTypeId.PROBE, 19),
+            ),
+            Step(
+                None,
+                ChronoUnitProduction(UnitTypeId.IMMORTAL, UnitTypeId.ROBOTICSFACILITY),
+                skip=RequiredUnitExists(UnitTypeId.IMMORTAL, 1, include_killed=True),
+            ),
+            Step(
+                None,
+                ChronoUnitProduction(UnitTypeId.OBSERVER, UnitTypeId.ROBOTICSFACILITY),
+                skip=RequiredUnitExists(UnitTypeId.OBSERVER, 1, include_killed=True),
+            ),
+            Step(
+                None,
+                ChronoUnitProduction(UnitTypeId.DISRUPTOR, UnitTypeId.ROBOTICSFACILITY),
+                skip=RequiredUnitExists(UnitTypeId.DISRUPTOR, 1, include_killed=True),
+            ),
+            SequentialList(
                 ProtossUnit(UnitTypeId.PROBE, 16 + 6),  # One base
-                Step(RequiredUnitExists(UnitTypeId.NEXUS, 2), ProtossUnit(UnitTypeId.PROBE, 44))
-            ]),
+                Step(RequiredUnitExists(UnitTypeId.NEXUS, 2), ProtossUnit(UnitTypeId.PROBE, 44)),
+            ),
             Step(RequiredUnitReady(UnitTypeId.PYLON, 1), AutoPylon()),
-            SequentialList([
+            SequentialList(
                 GridBuilding(UnitTypeId.PYLON, 1),
                 GridBuilding(UnitTypeId.GATEWAY, 2, priority=True),
                 StepBuildGas(2),
@@ -35,21 +47,23 @@ class DistruptorBuild(BuildOrder):
                 GridBuilding(UnitTypeId.ROBOTICSFACILITY, 1, priority=True),
                 ActTech(UpgradeId.WARPGATERESEARCH, UnitTypeId.CYBERNETICSCORE),
                 GridBuilding(UnitTypeId.ROBOTICSBAY, 1, priority=True),
-                Step(RequiredUnitExists(UnitTypeId.DISRUPTOR, 1, include_killed=True, include_not_ready=False),
-                     ActExpand(2)),
+                Step(
+                    RequiredUnitExists(UnitTypeId.DISRUPTOR, 1, include_killed=True, include_not_ready=False),
+                    ActExpand(2),
+                ),
                 StepBuildGas(4),
-            ]),
-            BuildOrder([
+            ),
+            BuildOrder(
                 ProtossUnit(UnitTypeId.IMMORTAL, 1, priority=True, only_once=True),
                 ProtossUnit(UnitTypeId.OBSERVER, 1, priority=True),
                 ProtossUnit(UnitTypeId.DISRUPTOR, 4, priority=True),
                 ProtossUnit(UnitTypeId.STALKER),
-                SequentialList([
+                SequentialList(
                     Step(RequiredMinerals(300), GridBuilding(UnitTypeId.GATEWAY, 3, priority=True)),
-                    Step(RequiredUnitReady(UnitTypeId.NEXUS, 2), GridBuilding(UnitTypeId.GATEWAY, 6, priority=True))
-                ])
-            ])
-        ])
+                    Step(RequiredUnitReady(UnitTypeId.NEXUS, 2), GridBuilding(UnitTypeId.GATEWAY, 6, priority=True)),
+                ),
+            ),
+        )
 
         tactics = [
             PlanCancelBuilding(),
@@ -60,10 +74,10 @@ class DistruptorBuild(BuildOrder):
             PlanZoneDefense(),
             PlanZoneGather(),
             Step(RequiredUnitExists(UnitTypeId.DISRUPTOR, include_killed=True), PlanZoneAttack()),
-            PlanFinishEnemy()
+            PlanFinishEnemy(),
         ]
 
-        super().__init__([build, tactics])
+        super().__init__(build, tactics)
 
 
 class SharpSphereBot(KnowledgeBot):
@@ -73,3 +87,8 @@ class SharpSphereBot(KnowledgeBot):
     async def create_plan(self) -> BuildOrder:
         return DistruptorBuild()
 
+
+class LadderBot(SharpSphereBot):
+    @property
+    def my_race(self):
+        return Race.Protoss

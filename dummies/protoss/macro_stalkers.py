@@ -10,15 +10,18 @@ from sharpy.plans.tactics import *
 
 
 class MacroStalkers(KnowledgeBot):
-
     def __init__(self):
         super().__init__("Sharp Spiders")
 
     async def create_plan(self) -> BuildOrder:
-        return BuildOrder([
-            Step(None, ChronoUnitProduction(UnitTypeId.PROBE, UnitTypeId.NEXUS),
-                 skip=RequiredUnitExists(UnitTypeId.PROBE, 40, include_pending=True), skip_until=RequiredUnitExists(UnitTypeId.ASSIMILATOR, 1)),
-            SequentialList([
+        return BuildOrder(
+            Step(
+                None,
+                ChronoUnitProduction(UnitTypeId.PROBE, UnitTypeId.NEXUS),
+                skip=RequiredUnitExists(UnitTypeId.PROBE, 40, include_pending=True),
+                skip_until=RequiredUnitExists(UnitTypeId.ASSIMILATOR, 1),
+            ),
+            SequentialList(
                 ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 14),
                 GridBuilding(UnitTypeId.PYLON, 1),
                 ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 16),
@@ -32,32 +35,26 @@ class MacroStalkers(KnowledgeBot):
                 ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 22),
                 GridBuilding(UnitTypeId.PYLON, 1),
                 BuildOrder(
+                    AutoPylon(),
+                    ActTech(UpgradeId.WARPGATERESEARCH),
                     [
-                        AutoPylon(),
-                        ActTech(UpgradeId.WARPGATERESEARCH),
-                        [
-                            ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 22),
-                            Step(RequiredUnitExists(UnitTypeId.NEXUS, 2), ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 44)),
-                            StepBuildGas(3,skip=RequiredGas(300))
-                        ],
-                    [
-                        GateUnit(UnitTypeId.STALKER, 100)
+                        ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 22),
+                        Step(RequiredUnitExists(UnitTypeId.NEXUS, 2), ActUnit(UnitTypeId.PROBE, UnitTypeId.NEXUS, 44)),
+                        StepBuildGas(3, skip=RequiredGas(300)),
                     ],
-                    [
-                        GridBuilding(UnitTypeId.GATEWAY, 7),
-                        StepBuildGas(4, skip=RequiredGas(200)),
-                    ]
-                ])
-            ]),
-            SequentialList([
+                    [GateUnit(UnitTypeId.STALKER, 100)],
+                    [GridBuilding(UnitTypeId.GATEWAY, 7), StepBuildGas(4, skip=RequiredGas(200))],
+                ),
+            ),
+            SequentialList(
                 PlanZoneDefense(),
                 RestorePower(),
                 PlanDistributeWorkers(),
                 PlanZoneGather(),
                 Step(RequiredUnitReady(UnitTypeId.GATEWAY, 4), PlanZoneAttack(4)),
                 PlanFinishEnemy(),
-            ])
-        ])
+            ),
+        )
 
 
 class LadderBot(MacroStalkers):
